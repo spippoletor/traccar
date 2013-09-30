@@ -104,6 +104,7 @@ public class ServerManager {
         initXexunServer("xexun");
         initGps103Server("gps103");
         initTk103Server("tk103");
+        initKx402Server("kx402");
         initGl100Server("gl100");
         initGl200Server("gl200");
         initT55Server("t55");
@@ -250,6 +251,22 @@ public class ServerManager {
                     pipeline.addLast("stringDecoder", new StringDecoder());
                     pipeline.addLast("stringEncoder", new StringEncoder());
                     pipeline.addLast("objectDecoder", new Tk103ProtocolDecoder(ServerManager.this));
+                }
+            });
+        }
+    }
+
+    private void initKx402Server(String protocol) throws SQLException {
+        if (isProtocolEnabled(properties, protocol)) {
+            serverList.add(new TrackerServer(this, new ServerBootstrap(), protocol) {
+                @Override
+                protected void addSpecificHandlers(ChannelPipeline pipeline) {
+                    byte delimiter[] = { (byte) ')' };
+                    pipeline.addLast("frameDecoder",
+                            new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
+                    pipeline.addLast("stringDecoder", new StringDecoder());
+                    pipeline.addLast("stringEncoder", new StringEncoder());
+                    pipeline.addLast("objectDecoder", new Kx402ProtocolDecoder(ServerManager.this));
                 }
             });
         }
